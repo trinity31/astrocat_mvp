@@ -5,11 +5,10 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent } from "@/components/ui/card"
-import { ClockIcon, StarIcon, SunIcon, UserIcon } from "lucide-react"
+import { ClockIcon, PlayCircle, SunIcon, UserIcon } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
 
 export default function CuteMysticalFortuneApp() {
@@ -24,34 +23,17 @@ export default function CuteMysticalFortuneApp() {
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  useEffect(() => {
-    const playAudio = async () => {
-      if (audioRef.current && !isPlaying) {
-        try {
-          audioRef.current.muted = false;
-          await audioRef.current.play();
-          setIsPlaying(true);
-        } catch (error) {
-          console.error('자동 재생 실패:', error);
-        }
+  const playSound = async () => {
+    if (audioRef.current && !isPlaying) {
+      try {
+        audioRef.current.muted = false;
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('재생 실패:', error);
       }
-    };
-
-    const handleInteraction = () => {
-      playAudio();
-      // 이벤트 리스너를 한 번만 실행하고 제거
-      window.removeEventListener('click', handleInteraction);
-      window.removeEventListener('touchstart', handleInteraction);
-    };
-
-    window.addEventListener('click', handleInteraction);
-    window.addEventListener('touchstart', handleInteraction);
-
-    return () => {
-      window.removeEventListener('click', handleInteraction);
-      window.removeEventListener('touchstart', handleInteraction);
-    };
-  }, [isPlaying]);
+    }
+  }
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout
@@ -147,13 +129,24 @@ export default function CuteMysticalFortuneApp() {
     <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-purple-900 text-white p-8">
       <div className="container mx-auto max-w-md">
         <div className="text-center mb-8">
-          <Image
-            src="/images/cat.gif"
-            alt="말하는 고양이"
-            width={200}
-            height={200}
-            className="mx-auto rounded-full border-4 border-pink-300"
-          />
+          <div className="relative w-[200px] h-[200px] mx-auto">
+            <Image
+              src="/images/cat.gif"
+              alt="말하는 고양이"
+              width={200}
+              height={200}
+              className="rounded-full border-4 border-pink-300"
+            />
+            {!isPlaying && (
+              <button 
+                onClick={playSound}
+                className="absolute bottom-0 right-0 p-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors shadow-lg"
+                aria-label="고양이 목소리 듣기"
+              >
+                <PlayCircle className="w-8 h-8" />
+              </button>
+            )}
+          </div>
           <audio ref={audioRef}>
             <source src="/sound/cat_voice.mp3" type="audio/mpeg" />
             브라우저가 오디오를 지원하지 않습니다.
