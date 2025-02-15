@@ -17,23 +17,13 @@ export default function CuteMysticalFortuneApp() {
   const [day, setDay] = useState("")
   const [birthTime, setBirthTime] = useState("")
   const [gender, setGender] = useState("")
-  const [fortune, setFortune] = useState<{ fortuneText: string; imageUrl: string } | null>(null)
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
+  const [fortune, setFortune] = useState<{
+    fortuneText: string;
+    imageUrl: string;
+    imageDescription: string;
+  } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
-
-  const playSound = async () => {
-    if (audioRef.current && !isPlaying) {
-      try {
-        audioRef.current.muted = false;
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error('재생 실패:', error);
-      }
-    }
-  }
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout
@@ -95,14 +85,16 @@ export default function CuteMysticalFortuneApp() {
 
       const result = await response.json()
       setFortune({
-        fortuneText: result.overview || "운세를 불러오는데 실패했습니다.",
-        imageUrl: result.image_url || "/placeholder.svg"
+        fortuneText: result.reading || "운세를 불러오는데 실패했습니다.",
+        imageUrl: result.image_url || "/placeholder.svg",
+        imageDescription: result.image_description || ""
       })
     } catch (error) {
       console.error('API 호출 에러:', error)
       setFortune({
         fortuneText: "죄송합니다. 잠시 후 다시 시도해주세요.",
-        imageUrl: "/placeholder.svg"
+        imageUrl: "/placeholder.svg",
+        imageDescription: ""
       })
     } finally {
       setIsLoading(false)
@@ -137,22 +129,9 @@ export default function CuteMysticalFortuneApp() {
               height={200}
               className="rounded-full border-4 border-pink-300"
             />
-            {!isPlaying && (
-              <button 
-                onClick={playSound}
-                className="absolute bottom-0 right-0 p-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors shadow-lg"
-                aria-label="고양이 목소리 듣기"
-              >
-                <PlayCircle className="w-8 h-8" />
-              </button>
-            )}
           </div>
-          <audio ref={audioRef}>
-            <source src="/sound/cat_voice.mp3" type="audio/mpeg" />
-            브라우저가 오디오를 지원하지 않습니다.
-          </audio>
           <p className="mt-4 text-xl font-bold text-pink-500">
-            안녕! 나는 사주보는 우주고양이. 너의 운명을 그림으로 알려줄게. 생년월일과 태어난 시간을 양력으로 입력해 달라냥~
+            안녕! 나는 사주보는 우주고양이. 너의 사주팔자를 그림으로 그려줄게. 생년월일과 태어난 시간을 양력으로 입력해 달라냥~
           </p>
         </div>
 
@@ -296,10 +275,17 @@ export default function CuteMysticalFortuneApp() {
                   className="rounded-lg border-4 border-pink-300 object-cover"
                 />
               </div>
-              <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0">
-                <ReactMarkdown>
-                  {fortune.fortuneText}
-                </ReactMarkdown>
+              <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0 space-y-6">
+                {fortune.imageDescription && (
+                  <p className="text-pink-200">
+                    {fortune.imageDescription}
+                  </p>
+                )}
+                <div className="pt-4 border-t border-pink-300/30">
+                  <ReactMarkdown>
+                    {fortune.fortuneText}
+                  </ReactMarkdown>
+                </div>
               </div>
             </CardContent>
           </Card>
