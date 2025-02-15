@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 
+const BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://127.0.0.1:8000'
+  : 'https://saju.trinity-lab.co.kr'
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const response = await fetch("http://127.0.0.1:8000/saju-reading", {
+    const response = await fetch(`${BASE_URL}/saju-reading`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
