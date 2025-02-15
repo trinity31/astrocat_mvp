@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server'
 
-const BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://127.0.0.1:8000'
-  : 'https://saju.trinity-lab.co.kr'
+// const BASE_URL = process.env.NODE_ENV === 'development' 
+//   ? 'http://127.0.0.1:8000'
+//   : 'https://saju.trinity-lab.co.kr'
+
+const BASE_URL = 'https://saju.trinity-lab.co.kr'
+
+export const runtime = 'edge' // Edge Runtime 사용
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60초 타임아웃
 
     const response = await fetch(`${BASE_URL}/saju-reading`, {
       method: "POST",
@@ -14,7 +21,10 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       throw new Error('API 호출 실패')
@@ -22,8 +32,19 @@ export async function POST(request: Request) {
 
     const data = await response.json()
     return NextResponse.json(data)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('API 호출 에러:', error)
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json(
+        {
+          reading: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+          image_url: "/placeholder.svg"
+        },
+        { status: 504 }
+      )
+    }
+
     return NextResponse.json(
       {
         reading: "죄송합니다. 잠시 후 다시 시도해주세요.",
