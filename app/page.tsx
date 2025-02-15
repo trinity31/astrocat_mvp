@@ -124,8 +124,8 @@ export default function CuteMysticalFortuneApp() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-purple-900 text-white p-8">
-      <div className="container mx-auto max-w-md">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-purple-900 text-white p-2 sm:p-8">
+      <div className="container mx-auto w-full sm:max-w-md">
         <div className="text-center mb-8">
           <div className="relative w-[200px] h-[200px] mx-auto">
             <Image
@@ -141,7 +141,7 @@ export default function CuteMysticalFortuneApp() {
           </p>
         </div>
 
-        <Card className="bg-white/10 backdrop-blur-md border-none shadow-lg">
+        <Card className="bg-white/10 backdrop-blur-md border-none shadow-lg mx-[-8px] sm:mx-0">
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="pt-4">
@@ -234,19 +234,25 @@ export default function CuteMysticalFortuneApp() {
                 <RadioGroup 
                   value={gender} 
                   onValueChange={setGender} 
-                  className="flex space-x-4 mt-2"
+                  className="flex space-x-6 mt-3"
                   required
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="male" id="male" className="text-pink-500" />
-                    <Label htmlFor="male" className="text-pink-200">
-                      남
+                  <div className="flex items-center">
+                    <Label 
+                      htmlFor="male" 
+                      className="flex items-center space-x-2 cursor-pointer py-1.5 px-3 rounded-lg hover:bg-white/5"
+                    >
+                      <RadioGroupItem value="male" id="male" className="w-4 h-4 text-pink-500" />
+                      <span className="text-pink-200">남</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="female" id="female" className="text-pink-500" />
-                    <Label htmlFor="female" className="text-pink-200">
-                      여
+                  <div className="flex items-center">
+                    <Label 
+                      htmlFor="female" 
+                      className="flex items-center space-x-2 cursor-pointer py-1.5 px-3 rounded-lg hover:bg-white/5"
+                    >
+                      <RadioGroupItem value="female" id="female" className="w-4 h-4 text-pink-500" />
+                      <span className="text-pink-200">여</span>
                     </Label>
                   </div>
                 </RadioGroup>
@@ -260,7 +266,7 @@ export default function CuteMysticalFortuneApp() {
         </Card>
 
         {isLoading && (
-          <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden">
+          <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden mx-[-8px] sm:mx-0">
             <CardContent className="pt-6">
               <p className="mb-4 text-lg font-medium text-pink-200 text-center">
                 잠시만 기다려 달라냥~ 🐱
@@ -276,7 +282,7 @@ export default function CuteMysticalFortuneApp() {
         )}
 
         {!isLoading && fortune && (
-          <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden">
+          <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden mx-[-8px] sm:mx-0">
             <CardContent className="pt-6">
               <div className="relative w-full aspect-square mb-4">
                 <Image
