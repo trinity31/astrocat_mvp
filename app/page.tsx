@@ -52,6 +52,12 @@ export default function CuteMysticalFortuneApp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!gender) {
+      alert('성별을 선택해주세요.')
+      return
+    }
+
     setIsLoading(true)
     
     // 시간이 12시간제로 변환되어야 하므로, am/pm 결정
@@ -141,7 +147,7 @@ export default function CuteMysticalFortuneApp() {
               <div className="pt-4">
                 <Label className="text-pink-300">
                   <SunIcon className="inline-block mr-2" />
-                  탄생한 날
+                  생년월일
                 </Label>
                 <div className="flex gap-2 mt-2">
                   <select
@@ -223,9 +229,14 @@ export default function CuteMysticalFortuneApp() {
               <div>
                 <Label className="text-pink-300">
                   <UserIcon className="inline-block mr-2" />
-                  성별
+                  태어난 성별<span className="text-pink-500 ml-1">*</span>
                 </Label>
-                <RadioGroup value={gender} onValueChange={setGender} className="flex space-x-4 mt-2">
+                <RadioGroup 
+                  value={gender} 
+                  onValueChange={setGender} 
+                  className="flex space-x-4 mt-2"
+                  required
+                >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="male" id="male" className="text-pink-500" />
                     <Label htmlFor="male" className="text-pink-200">
