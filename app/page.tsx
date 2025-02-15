@@ -2,13 +2,13 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent } from "@/components/ui/card"
-import { ClockIcon, PlayCircle, SunIcon, UserIcon } from "lucide-react"
+import { ClockIcon, SunIcon, UserIcon } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
 
 export default function CuteMysticalFortuneApp() {
