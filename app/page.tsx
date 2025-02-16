@@ -110,10 +110,8 @@ export default function CuteMysticalFortuneApp() {
     if (!fortune?.imageUrl) return
     
     try {
-      // 이미지 URL에서 파일명 추출
       const fileName = fortune.imageUrl.split('/').pop() || 'saju-fortune.png'
       
-      // Next.js API 라우트를 통해 이미지 다운로드
       const response = await fetch("/api/download-image", {
         method: "POST",
         headers: {
@@ -127,15 +125,25 @@ export default function CuteMysticalFortuneApp() {
       const blob = await response.blob()
       const blobUrl = window.URL.createObjectURL(blob)
       
-      const link = document.createElement('a')
-      link.href = blobUrl
-      link.download = fileName
-      link.style.display = 'none'
-      document.body.appendChild(link)
-      link.click()
+      // 모바일 기기 체크
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
       
-      setTimeout(() => {
+      if (isMobile) {
+        // 모바일에서는 새 창에서 이미지 열기
+        window.open(blobUrl, '_blank')
+      } else {
+        // PC에서는 기존 방식대로 다운로드
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = fileName
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
         document.body.removeChild(link)
+      }
+      
+      // blob URL 정리는 약간의 지연 후에
+      setTimeout(() => {
         window.URL.revokeObjectURL(blobUrl)
       }, 100)
     } catch (error) {
