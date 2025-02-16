@@ -137,7 +137,7 @@ export default function CuteMysticalFortuneApp() {
             />
           </div>
           <p className="mt-4 text-xl font-bold text-pink-500">
-            안녕! 나는 사주보는 우주고양이. 너의 사주팔자를 그림으로 그려줄게. 생년월일과 태어난 시간을 양력으로 입력해 달라냥~
+            안녕! 나는 사주보는 우주고양이! 너의 사주팔자 모습을 그림으로 그려줄게. 생년월일과 태어난 시간을 양력으로 입력해 달라냥~
           </p>
         </div>
 
@@ -145,9 +145,9 @@ export default function CuteMysticalFortuneApp() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="pt-4">
-                <Label className="text-pink-300">
-                  <SunIcon className="inline-block mr-2" />
-                  생년월일
+                <Label className="text-pink-300 text-lg">
+                  {/* <SunIcon className="inline-block mr-2" /> */}
+                  생년월일<span className="text-pink-500 ml-1">*</span>
                 </Label>
                 <div className="flex gap-2 mt-2">
                   <select
@@ -188,9 +188,9 @@ export default function CuteMysticalFortuneApp() {
               </div>
 
               <div>
-                <Label className="text-pink-300">
-                  <ClockIcon className="inline-block mr-2" />
-                  태어난 시간
+                <Label className="text-pink-300 text-lg">
+                  {/* <ClockIcon className="inline-block mr-2" /> */}
+                  태어난 시간<span className="text-pink-500 ml-1">*</span>
                 </Label>
                 <div className="flex gap-2 mt-2">
                   <select
@@ -227,39 +227,45 @@ export default function CuteMysticalFortuneApp() {
               </div>
 
               <div>
-                <Label className="text-pink-300">
-                  <UserIcon className="inline-block mr-2" />
-                  태어난 성별<span className="text-pink-500 ml-1">*</span>
+                <Label className="text-pink-300 text-lg">
+                  {/* <UserIcon className="inline-block mr-2" /> */}
+                  성별<span className="text-pink-500 ml-1">*</span>
                 </Label>
-                <RadioGroup 
-                  value={gender} 
-                  onValueChange={setGender} 
-                  className="flex space-x-6 mt-3"
-                  required
-                >
-                  <div className="flex items-center">
-                    <Label 
-                      htmlFor="male" 
-                      className="flex items-center space-x-2 cursor-pointer py-1.5 px-3 rounded-lg hover:bg-white/5"
-                    >
-                      <RadioGroupItem value="male" id="male" className="w-4 h-4 text-pink-500" />
-                      <span className="text-pink-200">남</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center">
-                    <Label 
-                      htmlFor="female" 
-                      className="flex items-center space-x-2 cursor-pointer py-1.5 px-3 rounded-lg hover:bg-white/5"
-                    >
-                      <RadioGroupItem value="female" id="female" className="w-4 h-4 text-pink-500" />
-                      <span className="text-pink-200">여</span>
-                    </Label>
-                  </div>
-                </RadioGroup>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setGender('male')}
+                    className={`
+                      py-2 px-3 rounded-lg border-2 transition-all
+                      ${gender === 'male' 
+                        ? 'border-pink-500 bg-pink-500/20 text-white' 
+                        : 'border-pink-300/50 text-pink-200 hover:border-pink-300 hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    남성
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGender('female')}
+                    className={`
+                      py-2 px-3 rounded-lg border-2 transition-all
+                      ${gender === 'female' 
+                        ? 'border-pink-500 bg-pink-500/20 text-white' 
+                        : 'border-pink-300/50 text-pink-200 hover:border-pink-300 hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    여성
+                  </button>
+                </div>
               </div>
 
-              <Button type="submit" className="w-full bg-pink-500 hover:bg-pink-600 text-white">
-                🔮 운세 보기
+              <Button 
+                type="submit" 
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+              >
+                운세 보기
               </Button>
             </form>
           </CardContent>
