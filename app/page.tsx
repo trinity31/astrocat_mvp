@@ -6,9 +6,8 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent } from "@/components/ui/card"
-import { ClockIcon, SunIcon, UserIcon } from "lucide-react"
+import { Download, Share2 } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
 
 export default function CuteMysticalFortuneApp() {
@@ -104,6 +103,64 @@ export default function CuteMysticalFortuneApp() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!fortune?.imageUrl) return
+    
+    try {
+      // 이미지 URL에서 파일명 추출
+      const fileName = fortune.imageUrl.split('/').pop() || 'saju-fortune.png'
+      
+      // Next.js API 라우트를 통해 이미지 다운로드
+      const response = await fetch("/api/download-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imageUrl: fortune.imageUrl }),
+      })
+      
+      if (!response.ok) throw new Error('이미지 다운로드 실패')
+      
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      
+      setTimeout(() => {
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(blobUrl)
+      }, 100)
+    } catch (error) {
+      console.error('다운로드 실패:', error)
+      alert('이미지 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    }
+  }
+
+  const handleShare = async () => {
+    if (!fortune) return
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: '나의 사주 운세',
+          text: fortune.imageDescription,
+          url: window.location.href
+        })
+      } else {
+        // 공유 API를 지원하지 않는 경우 클립보드에 복사
+        await navigator.clipboard.writeText(window.location.href)
+        alert('링크가 클립보드에 복사되었습니다!')
+      }
+    } catch (error) {
+      console.error('공유 실패:', error)
     }
   }
 
@@ -297,6 +354,22 @@ export default function CuteMysticalFortuneApp() {
                   fill
                   className="rounded-lg border-4 border-pink-300 object-cover"
                 />
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <Button
+                    onClick={handleDownload}
+                    className="bg-white/20 hover:bg-white/30 backdrop-blur-md"
+                    size="icon"
+                  >
+                    <Download className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    onClick={handleShare}
+                    className="bg-white/20 hover:bg-white/30 backdrop-blur-md"
+                    size="icon"
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
               <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0 space-y-6">
                 {fortune.imageDescription && (
