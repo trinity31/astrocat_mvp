@@ -110,29 +110,43 @@ export default function CuteMysticalFortuneApp() {
     if (!fortune?.imageUrl) return
     
     try {
-      const fileName = fortune.imageUrl.split('/').pop() || 'saju-fortune.png'
-      
-      const response = await fetch("/api/download-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ imageUrl: fortune.imageUrl }),
-      })
-      
-      if (!response.ok) throw new Error('이미지 다운로드 실패')
-      
-      const blob = await response.blob()
-      const blobUrl = window.URL.createObjectURL(blob)
-      
       // 모바일 기기 체크
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
       
       if (isMobile) {
-        // 모바일에서는 새 창에서 이미지 열기
-        window.open(blobUrl, '_blank')
+        // 모바일에서는 원본 이미지 URL을 직접 사용
+        const img = document.createElement('img')
+        img.src = fortune.imageUrl
+        img.style.display = 'none'
+        document.body.appendChild(img)
+        
+        // 이미지를 길게 누르라는 안내 메시지
+        alert('이미지를 길게 눌러서 저장할 수 있습니다.')
+        
+        // 이미지 클릭 시뮬레이션
+        img.click()
+        
+        // 약간의 지연 후 정리
+        setTimeout(() => {
+          document.body.removeChild(img)
+        }, 100)
       } else {
         // PC에서는 기존 방식대로 다운로드
+        const fileName = fortune.imageUrl.split('/').pop() || 'saju-fortune.png'
+        
+        const response = await fetch("/api/download-image", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ imageUrl: fortune.imageUrl }),
+        })
+        
+        if (!response.ok) throw new Error('이미지 다운로드 실패')
+        
+        const blob = await response.blob()
+        const blobUrl = window.URL.createObjectURL(blob)
+        
         const link = document.createElement('a')
         link.href = blobUrl
         link.download = fileName
@@ -140,12 +154,11 @@ export default function CuteMysticalFortuneApp() {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+        
+        setTimeout(() => {
+          window.URL.revokeObjectURL(blobUrl)
+        }, 100)
       }
-      
-      // blob URL 정리는 약간의 지연 후에
-      setTimeout(() => {
-        window.URL.revokeObjectURL(blobUrl)
-      }, 100)
     } catch (error) {
       console.error('다운로드 실패:', error)
       alert('이미지 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.')
