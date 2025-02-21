@@ -68,7 +68,18 @@ export default function CuteMysticalFortuneApp() {
   // 페이지 로드 이벤트 추가
   useEffect(() => {
     if (analytics) {
-      logEvent(analytics, "페이지 진입");
+      // 접속 환경 정보 수집
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+      const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+
+      logEvent(analytics, "페이지 진입", {
+        platform: isMobile ? "mobile" : "desktop",
+        browser: isKakao ? "kakaotalk" : navigator.userAgent,
+        screen_size: `${window.innerWidth}x${window.innerHeight}`,
+      });
     }
   }, [analytics]);
 
