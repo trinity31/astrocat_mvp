@@ -318,15 +318,15 @@ export default function CuteMysticalFortuneApp() {
   };
 
   // 다시하기 버튼에 onClick 핸들러 추가
-  const handleReset = () => {
-    if (analytics) {
-      logEvent(analytics, "다시 하기", {
-        birth_date: `${year}-${month}-${day}`,
-        gender: gender,
-      });
-    }
-    window.location.reload();
-  };
+  // const handleReset = () => {
+  //   if (analytics) {
+  //     logEvent(analytics, "다시 하기", {
+  //       birth_date: `${year}-${month}-${day}`,
+  //       gender: gender,
+  //     });
+  //   }
+  //   window.location.reload();
+  // };
 
   // 현재 연도 계산
   const currentYear = new Date().getFullYear();
