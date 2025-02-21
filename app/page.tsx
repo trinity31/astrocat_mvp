@@ -18,8 +18,9 @@ import { Toaster } from "@/components/ui/toaster";
 const recommendedReadings = [
   {
     id: 1,
-    title: "내 사주 자연 이미지",
-    description: "당신의 사주를 자연의 모습으로 표현한 이미지를 생성합니다.",
+    title: "내 사주를 닮은 자연",
+    description:
+      "당신의 사주를 아름다운 자연의 모습으로 표현한 이미지를 생성합니다.",
     imageUrl: "/images/nature-fortune.png",
     type: "nature",
     originalPrice: 9000,
@@ -28,8 +29,8 @@ const recommendedReadings = [
   },
   {
     id: 2,
-    title: "내 사주 여행 이미지",
-    description: "당신의 사주에 맞는 여행지를 이미지로 생성해 드립니다.",
+    title: "나 사주에 맞는 여행지는?",
+    description: "당신의 사주에 맞는 여행지를 표현한 이미지를 생성해 드립니다.",
     imageUrl: "/images/travel-fortune.png",
     type: "travel",
     originalPrice: 9000,
