@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function CuteMysticalFortuneApp() {
   const { toast } = useToast();
+  const [name, setName] = useState("");
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
@@ -61,6 +62,11 @@ export default function CuteMysticalFortuneApp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!name.trim()) {
+      alert("이름을 입력해주세요.");
+      return;
+    }
 
     if (!gender) {
       alert("성별을 선택해주세요.");
@@ -204,8 +210,8 @@ export default function CuteMysticalFortuneApp() {
       await window.Kakao.Share.sendDefault({
         objectType: "feed",
         content: {
-          title: "나의 사주 운세",
-          description: fortune.imageDescription.slice(0, 100) + "...",
+          title: `${name}님의 사주 이미지`,
+          description: fortune.imageDescription,
           imageUrl: fortune.imageUrl,
           link: {
             mobileWebUrl: window.location.href,
@@ -214,7 +220,7 @@ export default function CuteMysticalFortuneApp() {
         },
         buttons: [
           {
-            title: "자세히 보기",
+            title: "내 사주 보기",
             link: {
               mobileWebUrl: window.location.href,
               webUrl: window.location.href,
@@ -274,6 +280,19 @@ export default function CuteMysticalFortuneApp() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="pt-4">
+                <Label className="text-pink-300 text-lg">
+                  이름<span className="text-pink-500 ml-1">*</span>
+                </Label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full mt-2 px-3 py-2 bg-white/10 border border-pink-300/30 rounded-lg text-white placeholder:text-pink-200/50 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  placeholder="이름을 입력해주세요"
+                  required
+                />
+              </div>
+              <div>
                 <Label className="text-pink-300 text-lg">
                   {/* <SunIcon className="inline-block mr-2" /> */}
                   생년월일<span className="text-pink-500 ml-1">*</span>
