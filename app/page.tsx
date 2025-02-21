@@ -289,8 +289,8 @@ export default function CuteMysticalFortuneApp() {
         objectType: "feed",
         content: {
           title: `${name}님의 사주 이미지`,
-          description: reading.description.slice(0, 100) + "...",
-          imageUrl: reading.imageUrl,
+          description: fortune?.imageDescription.slice(0, 100) + "...",
+          imageUrl: fortune?.imageUrl,
           link: {
             mobileWebUrl: window.location.href,
             webUrl: window.location.href,
