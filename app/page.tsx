@@ -192,16 +192,24 @@ export default function CuteMysticalFortuneApp() {
       if (navigator.share) {
         await navigator.share({
           title: "나의 사주 운세",
-          text: fortune.imageDescription,
+          text: fortune.imageDescription.slice(0, 100) + "...",
           url: window.location.href,
         });
       } else {
-        // 공유 API를 지원하지 않는 경우 클립보드에 복사
+        // 클립보드 복사 폴백
         await navigator.clipboard.writeText(window.location.href);
-        alert("링크가 클립보드에 복사되었습니다!");
+        toast({
+          description: "링크가 클립보드에 복사되었습니다!",
+          duration: 2000,
+        });
       }
     } catch (error) {
       console.error("공유 실패:", error);
+      toast({
+        variant: "destructive",
+        description: "공유하기에 실패했습니다.",
+        duration: 2000,
+      });
     }
   };
 
@@ -375,67 +383,83 @@ export default function CuteMysticalFortuneApp() {
                 </div>
               </div>
 
-              {!isLoading ? (
-                <Button
-                  type="submit"
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
-                >
-                  🔮 운세 보기
-                </Button>
-              ) : (
-                <div>
-                  <p className="mb-4 text-lg font-medium text-pink-200 text-center">
-                    잠시만 기다려 달라냥~ 🐱
-                  </p>
-                  <div className="w-full bg-white/20 rounded-full h-4">
-                    <div
-                      className="bg-pink-500 h-4 rounded-full transition-all duration-1000"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
+              {/* 운세 보기 버튼과 로딩바는 fortune이 없을 때만 표시 */}
+              {!fortune && (
+                <>
+                  {!isLoading ? (
+                    <Button
+                      type="submit"
+                      className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                    >
+                      🔮 운세 보기
+                    </Button>
+                  ) : (
+                    <div>
+                      <p className="mb-4 text-lg font-medium text-pink-200 text-center">
+                        잠시만 기다려 달라냥~ 🐱
+                      </p>
+                      <div className="w-full bg-white/20 rounded-full h-4">
+                        <div
+                          className="bg-pink-500 h-4 rounded-full transition-all duration-1000"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </form>
           </CardContent>
         </Card>
 
-        {!isLoading && fortune && (
-          <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden mx-[-8px] sm:mx-0">
-            <CardContent className="pt-6">
-              <div className="relative w-full aspect-square mb-4">
-                <Image
-                  src={fortune.imageUrl || "/placeholder.svg"}
-                  alt="운세 이미지"
-                  fill
-                  className="rounded-lg border-4 border-pink-300 object-cover"
-                />
-                <div className="absolute bottom-4 right-4 flex gap-2">
-                  <Button
-                    onClick={handleDownload}
-                    className="bg-white/20 hover:bg-white/30 backdrop-blur-md"
-                    size="icon"
-                  >
-                    <Download className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    onClick={handleShare}
-                    className="bg-white/20 hover:bg-white/30 backdrop-blur-md"
-                    size="icon"
-                  >
-                    <Share2 className="h-5 w-5" />
-                  </Button>
+        {fortune && (
+          <>
+            <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden mx-[-8px] sm:mx-0">
+              <CardContent className="pt-6">
+                <div className="relative w-full aspect-square mb-4">
+                  <Image
+                    src={fortune.imageUrl || "/placeholder.svg"}
+                    alt="운세 이미지"
+                    fill
+                    className="rounded-lg border-4 border-pink-300 object-cover"
+                  />
                 </div>
-              </div>
-              <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0 space-y-6">
-                {fortune.imageDescription && (
-                  <p className="text-pink-200">{fortune.imageDescription}</p>
-                )}
-                <div className="pt-4 border-t border-pink-300/30">
-                  <ReactMarkdown>{fortune.fortuneText}</ReactMarkdown>
+                <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0 space-y-6">
+                  {fortune.imageDescription && (
+                    <p className="text-pink-200">{fortune.imageDescription}</p>
+                  )}
+                  <div className="pt-4 border-t border-pink-300/30">
+                    <ReactMarkdown>{fortune.fortuneText}</ReactMarkdown>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* 추가된 다운로드/공유 버튼 */}
+            <div className="flex gap-2 mt-4">
+              <Button
+                onClick={handleDownload}
+                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                이미지 저장
+              </Button>
+              <Button
+                onClick={handleShare}
+                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+              >
+                <Share2 className="h-5 w-5 mr-2" />
+                공유하기
+              </Button>
+            </div>
+
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full mt-4 mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
+            >
+              🔮 다시 하기
+            </Button>
+          </>
         )}
       </div>
     </div>
