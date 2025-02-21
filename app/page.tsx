@@ -189,7 +189,10 @@ export default function CuteMysticalFortuneApp() {
     if (!fortune) return;
 
     try {
-      if (navigator.share) {
+      // 카카오톡 인앱 브라우저 체크
+      const isKakaoTalk = /KAKAOTALK/i.test(navigator.userAgent);
+
+      if (navigator.share && !isKakaoTalk) {
         // 이미지 다운로드
         const response = await fetch(fortune.imageUrl);
         const blob = await response.blob();
@@ -212,6 +215,7 @@ export default function CuteMysticalFortuneApp() {
           });
         }
       } else {
+        // 클립보드 복사 폴백
         await navigator.clipboard.writeText(window.location.href);
         toast({
           description: "링크가 클립보드에 복사되었습니다!",
