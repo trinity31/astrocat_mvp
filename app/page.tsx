@@ -7,11 +7,36 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Share2 } from "lucide-react";
+import { Download, Share2, ArrowRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { initFirebase } from "@/lib/firebase";
 import { logEvent } from "firebase/analytics";
+import { Toaster } from "@/components/ui/toaster";
+
+// Mock 데이터 수정
+const recommendedReadings = [
+  {
+    id: 1,
+    title: "내 사주 자연 이미지",
+    description: "당신의 사주를 자연의 모습으로 표현한 이미지를 생성합니다.",
+    imageUrl: "/images/nature-fortune.png",
+    type: "nature",
+    originalPrice: 9000,
+    price: 0,
+    isPromotion: true,
+  },
+  {
+    id: 2,
+    title: "내 사주 여행 이미지",
+    description: "당신의 사주에 맞는 여행지를 이미지로 생성해 드립니다.",
+    imageUrl: "/images/travel-fortune.png",
+    type: "travel",
+    originalPrice: 9000,
+    price: 900,
+    isPromotion: false,
+  },
+];
 
 export default function CuteMysticalFortuneApp() {
   const { analytics } = initFirebase();
@@ -29,11 +54,17 @@ export default function CuteMysticalFortuneApp() {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [natureReading, setNatureReading] = useState<{
+    fortuneText: string;
+    imageUrl: string;
+    imageDescription: string;
+  } | null>(null);
+  const [isNatureLoading, setIsNatureLoading] = useState(false);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
-    if (isLoading) {
+    if (isLoading || isNatureLoading) {
       setProgress(0);
       intervalId = setInterval(() => {
         setProgress((prev) => {
@@ -41,9 +72,9 @@ export default function CuteMysticalFortuneApp() {
             clearInterval(intervalId);
             return 100;
           }
-          return prev + 3.33; // 30초 동안 100%까지 도달 (100/30 ≈ 3.33)
+          return prev + 3.33;
         });
-      }, 1000); // 1초마다 업데이트
+      }, 1000);
     } else {
       setProgress(0);
     }
@@ -55,7 +86,7 @@ export default function CuteMysticalFortuneApp() {
         clearInterval(intervalId);
       }
     };
-  }, [isLoading]);
+  }, [isLoading, isNatureLoading]);
 
   // 카카오 SDK 초기화
   useEffect(() => {
@@ -153,8 +184,8 @@ export default function CuteMysticalFortuneApp() {
     }
   };
 
-  const handleDownload = async () => {
-    if (!fortune?.imageUrl) return;
+  const handleDownload = async (reading: (typeof recommendedReadings)[0]) => {
+    if (!reading.imageUrl) return;
 
     // Firebase Analytics 이벤트 추가
     if (analytics) {
@@ -186,7 +217,7 @@ export default function CuteMysticalFortuneApp() {
                 </style>
               </head>
               <body>
-                <img src="${fortune.imageUrl}" alt="운세 이미지" />
+                <img src="${reading.imageUrl}" alt="운세 이미지" />
                 <p>이미지를 길게 눌러서 저장할 수 있습니다</p>
               </body>
             </html>
@@ -196,14 +227,14 @@ export default function CuteMysticalFortuneApp() {
       }
 
       // PC에서는 기존 방식대로 다운로드
-      const fileName = fortune.imageUrl.split("/").pop() || "saju-fortune.png";
+      const fileName = reading.imageUrl.split("/").pop() || "saju-fortune.png";
 
       const response = await fetch("/api/download-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageUrl: fortune.imageUrl }),
+        body: JSON.stringify({ imageUrl: reading.imageUrl }),
       });
 
       if (!response.ok) throw new Error("이미지 다운로드 실패");
@@ -238,8 +269,8 @@ export default function CuteMysticalFortuneApp() {
     }
   };
 
-  const handleShare = async () => {
-    if (!fortune) return;
+  const handleShare = async (reading: (typeof recommendedReadings)[0]) => {
+    if (!reading.imageUrl) return;
 
     // Firebase Analytics 이벤트 추가
     if (analytics) {
@@ -258,8 +289,8 @@ export default function CuteMysticalFortuneApp() {
         objectType: "feed",
         content: {
           title: `${name}님의 사주 이미지`,
-          description: fortune.imageDescription.slice(0, 100) + "...",
-          imageUrl: fortune.imageUrl,
+          description: reading.description.slice(0, 100) + "...",
+          imageUrl: reading.imageUrl,
           link: {
             mobileWebUrl: window.location.href,
             webUrl: window.location.href,
@@ -314,6 +345,204 @@ export default function CuteMysticalFortuneApp() {
     { value: "00", label: "0~29분" },
     { value: "30", label: "30~59분" },
   ];
+
+  const getFortune = async (readingType: string) => {
+    const hour24 = parseInt(birthTime.split(":")[0]);
+    const hour12 = hour24 % 12 || 12;
+    const amPm = hour24 < 12 ? "am" : "pm";
+
+    const params = {
+      gender: gender.toUpperCase(),
+      datetime: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
+      hour: hour12.toString().padStart(2, "0"),
+      minute: birthTime.split(":")[1] || "00",
+      am_pm: amPm,
+      reading_type: readingType,
+    };
+
+    const response = await fetch("/api/saju", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) throw new Error("API 호출 실패");
+    return await response.json();
+  };
+
+  // 추천 카드 클릭 핸들러 수정
+  const handleRecommendedClick = async (
+    reading: (typeof recommendedReadings)[0]
+  ) => {
+    if (!fortune) return;
+
+    // 이미 로딩 중이거나 결과가 있으면 리턴
+    if (reading.type === "nature" && (isNatureLoading || natureReading)) return;
+
+    // Firebase Analytics 이벤트 추가
+    if (analytics) {
+      logEvent(analytics, "추천 사주풀이 클릭", {
+        reading_type: reading.type,
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+        price: reading.price,
+        is_promotion: reading.isPromotion,
+      });
+    }
+
+    try {
+      if (reading.type === "nature") {
+        setIsNatureLoading(true);
+        const result = await getFortune("five_elements_nature");
+        setNatureReading({
+          fortuneText: result.reading,
+          imageUrl: result.image_url,
+          imageDescription: result.image_description,
+        });
+      } else if (reading.type === "travel") {
+        toast({
+          description: "준비 중인 기능입니다 😺",
+          duration: 2000,
+        });
+      }
+    } catch (error) {
+      console.error("추천 사주풀이 에러:", error);
+      toast({
+        variant: "destructive",
+        description: "사주풀이 생성에 실패했습니다.",
+        duration: 2000,
+      });
+    } finally {
+      setIsNatureLoading(false);
+    }
+  };
+
+  const handleNatureDownload = async (reading: typeof natureReading) => {
+    if (!reading?.imageUrl) return;
+
+    // Firebase Analytics 이벤트 추가
+    if (analytics) {
+      logEvent(analytics, "이미지 다운로드", {
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+        type: "nature",
+      });
+    }
+
+    try {
+      const isMobileDevice =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
+      if (isMobileDevice) {
+        const newWindow = window.open("", "_blank");
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  body { margin: 0; padding: 16px; font-family: sans-serif; }
+                  img { max-width: 100%; height: auto; }
+                  p { color: #666; text-align: center; margin-top: 16px; }
+                </style>
+              </head>
+              <body>
+                <img src="${reading.imageUrl}" alt="자연 이미지" />
+                <p>이미지를 길게 눌러서 저장할 수 있습니다</p>
+              </body>
+            </html>
+          `);
+        }
+        return;
+      }
+
+      const fileName =
+        reading.imageUrl.split("/").pop() || "nature-fortune.png";
+      const response = await fetch("/api/download-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: reading.imageUrl }),
+      });
+
+      if (!response.ok) throw new Error("이미지 다운로드 실패");
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+
+      toast({
+        description: "이미지가 다운로드되었습니다.",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("다운로드 실패:", error);
+      toast({
+        variant: "destructive",
+        description:
+          "이미지 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleNatureShare = async (reading: typeof natureReading) => {
+    if (!reading?.imageUrl) return;
+
+    // Firebase Analytics 이벤트 추가
+    if (analytics) {
+      logEvent(analytics, "카카오톡 공유하기", {
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+        type: "nature",
+      });
+    }
+
+    try {
+      if (!window.Kakao) {
+        throw new Error("Kakao SDK not loaded");
+      }
+
+      await window.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: `${name}님의 사주 자연 이미지`,
+          description: reading.imageDescription.slice(0, 100) + "...",
+          imageUrl: reading.imageUrl,
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        },
+        buttons: [
+          {
+            title: "내 사주 이미지 보기",
+            link: {
+              mobileWebUrl: window.location.href,
+              webUrl: window.location.href,
+            },
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("공유 실패:", error);
+      toast({
+        variant: "destructive",
+        description: "공유하기에 실패했습니다.",
+        duration: 2000,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-purple-900 text-white p-2 sm:p-8">
@@ -487,7 +716,7 @@ export default function CuteMysticalFortuneApp() {
                       type="submit"
                       className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
                     >
-                      🔮 사주 보기
+                      🔮 내 사주 이미지 보기
                     </Button>
                   ) : (
                     <div>
@@ -496,7 +725,7 @@ export default function CuteMysticalFortuneApp() {
                       </p>
                       <div className="w-full bg-white/20 rounded-full h-4">
                         <div
-                          className="bg-pink-500 h-4 rounded-full transition-all duration-1000"
+                          className="bg-pink-500 h-4 rounded-full transition-all duration-3000"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -534,14 +763,14 @@ export default function CuteMysticalFortuneApp() {
             {/* 추가된 다운로드/공유 버튼 */}
             <div className="flex flex-col gap-2 mt-4">
               <Button
-                onClick={handleDownload}
+                onClick={() => handleDownload(recommendedReadings[0])}
                 className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Download className="h-5 w-5 mr-2" />
                 이미지 저장
               </Button>
               <Button
-                onClick={handleShare}
+                onClick={() => handleShare(recommendedReadings[0])}
                 className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Share2 className="h-5 w-5 mr-2" />
@@ -554,9 +783,149 @@ export default function CuteMysticalFortuneApp() {
                 🔮 다시 하기
               </Button>
             </div>
+
+            {/* 추천 사주풀이 리스트 */}
+            <div className="mt-8 space-y-4">
+              <h2 className="text-xl font-bold text-pink-300">
+                다른 사주풀이 보기
+              </h2>
+              <div className="space-y-2">
+                {recommendedReadings.map((reading) => (
+                  <div key={reading.id}>
+                    <Card
+                      className={`bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden ${
+                        reading.type === "nature" &&
+                        (isNatureLoading || natureReading)
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-white/20"
+                      } transition-all`}
+                      onClick={() => handleRecommendedClick(reading)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex gap-4">
+                          <div className="relative w-24 h-24 flex-shrink-0">
+                            <Image
+                              src={reading.imageUrl}
+                              alt={reading.title}
+                              fill
+                              className="rounded-lg object-cover"
+                            />
+                          </div>
+
+                          <div className="flex-1">
+                            <h3 className="font-bold text-white">
+                              {reading.title}
+                            </h3>
+                            <p className="text-sm text-pink-200 mt-1">
+                              {reading.description}
+                            </p>
+                            <div className="mt-2 flex items-center gap-2">
+                              {reading.isPromotion ? (
+                                <>
+                                  <span className="text-xs px-2 py-0.5 bg-pink-500 text-white rounded-full">
+                                    무료 체험
+                                  </span>
+                                  <span className="text-sm text-gray-400 line-through">
+                                    {reading.originalPrice.toLocaleString()}원
+                                  </span>
+                                  <span className="text-lg font-bold text-white">
+                                    0원
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-xs px-2 py-0.5 bg-pink-500 text-white rounded-full">
+                                    90% 할인
+                                  </span>
+                                  <span className="text-sm text-gray-400 line-through">
+                                    {reading.originalPrice.toLocaleString()}원
+                                  </span>
+                                  <span className="text-lg font-bold text-white">
+                                    {reading.price.toLocaleString()}원
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {reading.type === "nature" && isNatureLoading && (
+                          <div className="mt-4">
+                            <p className="mb-4 text-lg font-medium text-pink-200 text-center">
+                              잠시만 기다려 달라냥~ 🐱
+                            </p>
+                            <div className="w-full bg-white/20 rounded-full h-4">
+                              <div
+                                className="bg-pink-500 h-4 rounded-full transition-all duration-1000"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* 자연 이미지 결과 표시 */}
+                    {reading.type === "nature" && natureReading && (
+                      <>
+                        <Card className="mt-4 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden">
+                          <CardContent className="pt-6">
+                            <div className="relative w-full aspect-square mb-4">
+                              <Image
+                                src={natureReading.imageUrl}
+                                alt="자연 이미지"
+                                fill
+                                className="rounded-lg border-4 border-pink-300 object-cover"
+                              />
+                            </div>
+                            <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0 space-y-6">
+                              {natureReading.imageDescription && (
+                                <p className="text-pink-200">
+                                  {natureReading.imageDescription}
+                                </p>
+                              )}
+                              <div className="pt-4 border-t border-pink-300/30">
+                                <ReactMarkdown>
+                                  {natureReading.fortuneText}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <div className="flex flex-col gap-2 mt-4">
+                          <Button
+                            onClick={() => handleNatureDownload(natureReading)}
+                            className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                          >
+                            <Download className="h-5 w-5 mr-2" />
+                            이미지 저장
+                          </Button>
+                          <Button
+                            onClick={() => handleNatureShare(natureReading)}
+                            className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                          >
+                            <Share2 className="h-5 w-5 mr-2" />
+                            카카오톡으로 공유
+                          </Button>
+                          {/* <Button
+                            onClick={() => setNatureReading(null)}
+                            className="w-full mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
+                          >
+                            🔮 다시 하기
+                          </Button> */}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </div>
+
+      {/* Toaster 컴포넌트 추가 */}
+      <Toaster />
     </div>
   );
 }
