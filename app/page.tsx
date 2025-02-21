@@ -190,13 +190,28 @@ export default function CuteMysticalFortuneApp() {
 
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: "나의 사주 운세",
-          text: fortune.imageDescription.slice(0, 100) + "...",
-          url: window.location.href,
-        });
+        // 이미지 다운로드
+        const response = await fetch(fortune.imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], "fortune.png", { type: "image/png" });
+
+        try {
+          // 이미지와 함께 공유 시도
+          await navigator.share({
+            title: "나의 사주 운세",
+            text: fortune.imageDescription.slice(0, 100) + "...",
+            url: window.location.href,
+            files: [file],
+          });
+        } catch {
+          // 이미지 공유가 실패하면 텍스트만 공유
+          await navigator.share({
+            title: "나의 사주 운세",
+            text: fortune.imageDescription.slice(0, 100) + "...",
+            url: window.location.href,
+          });
+        }
       } else {
-        // 클립보드 복사 폴백
         await navigator.clipboard.writeText(window.location.href);
         toast({
           description: "링크가 클립보드에 복사되었습니다!",
