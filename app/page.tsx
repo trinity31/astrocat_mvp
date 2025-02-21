@@ -10,8 +10,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, Share2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import { initFirebase } from "@/lib/firebase";
+import { logEvent } from "firebase/analytics";
 
 export default function CuteMysticalFortuneApp() {
+  const { analytics } = initFirebase();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [year, setYear] = useState("");
@@ -45,6 +48,8 @@ export default function CuteMysticalFortuneApp() {
       setProgress(0);
     }
 
+    initFirebase();
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
@@ -60,6 +65,13 @@ export default function CuteMysticalFortuneApp() {
     }
   }, []);
 
+  // 페이지 로드 이벤트 추가
+  useEffect(() => {
+    if (analytics) {
+      logEvent(analytics, "페이지 진입");
+    }
+  }, [analytics]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -71,6 +83,14 @@ export default function CuteMysticalFortuneApp() {
     if (!gender) {
       alert("성별을 선택해주세요.");
       return;
+    }
+
+    // Firebase Analytics 이벤트 추가
+    if (analytics) {
+      logEvent(analytics, "사주 보기", {
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+      });
     }
 
     setIsLoading(true);
@@ -124,6 +144,14 @@ export default function CuteMysticalFortuneApp() {
 
   const handleDownload = async () => {
     if (!fortune?.imageUrl) return;
+
+    // Firebase Analytics 이벤트 추가
+    if (analytics) {
+      logEvent(analytics, "이미지 다운로드", {
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+      });
+    }
 
     try {
       // 모바일 환경 체크
@@ -202,6 +230,14 @@ export default function CuteMysticalFortuneApp() {
   const handleShare = async () => {
     if (!fortune) return;
 
+    // Firebase Analytics 이벤트 추가
+    if (analytics) {
+      logEvent(analytics, "카카오톡 공유하기", {
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+      });
+    }
+
     try {
       if (!window.Kakao) {
         throw new Error("Kakao SDK not loaded");
@@ -236,6 +272,17 @@ export default function CuteMysticalFortuneApp() {
         duration: 2000,
       });
     }
+  };
+
+  // 다시하기 버튼에 onClick 핸들러 추가
+  const handleReset = () => {
+    if (analytics) {
+      logEvent(analytics, "다시 하기", {
+        birth_date: `${year}-${month}-${day}`,
+        gender: gender,
+      });
+    }
+    window.location.reload();
   };
 
   // 현재 연도 계산
@@ -429,7 +476,7 @@ export default function CuteMysticalFortuneApp() {
                       type="submit"
                       className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
                     >
-                      🔮 운세 보기
+                      🔮 사주 보기
                     </Button>
                   ) : (
                     <div>
@@ -490,8 +537,8 @@ export default function CuteMysticalFortuneApp() {
                 카카오톡으로 공유
               </Button>
               <Button
-                onClick={() => window.location.reload()}
-                className="w-full  mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
+                onClick={handleReset}
+                className="w-full mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
               >
                 🔮 다시 하기
               </Button>
