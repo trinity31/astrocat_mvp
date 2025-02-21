@@ -21,7 +21,6 @@ export function initFirebase() {
   if (typeof window !== 'undefined') {  // 'undefined'를 문자열로 수정
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
-      console.log("Firebase 초기화 완료");
       analytics = getAnalytics(app);
     }
   }

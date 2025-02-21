@@ -61,7 +61,7 @@ export default function CuteMysticalFortuneApp() {
   useEffect(() => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY);
-      console.log("Kakao init:", window.Kakao.isInitialized());
+      //console.log("Kakao init:", window.Kakao.isInitialized());
     }
   }, []);
 
