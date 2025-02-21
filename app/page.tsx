@@ -211,7 +211,7 @@ export default function CuteMysticalFortuneApp() {
         objectType: "feed",
         content: {
           title: `${name}님의 사주 이미지`,
-          description: fortune.imageDescription,
+          description: fortune.imageDescription.slice(0, 100) + "...",
           imageUrl: fortune.imageUrl,
           link: {
             mobileWebUrl: window.location.href,
@@ -220,7 +220,7 @@ export default function CuteMysticalFortuneApp() {
         },
         buttons: [
           {
-            title: "내 사주 보기",
+            title: "내 사주 이미지 보기",
             link: {
               mobileWebUrl: window.location.href,
               webUrl: window.location.href,
@@ -474,29 +474,28 @@ export default function CuteMysticalFortuneApp() {
             </Card>
 
             {/* 추가된 다운로드/공유 버튼 */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-col gap-2 mt-4">
               <Button
                 onClick={handleDownload}
-                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Download className="h-5 w-5 mr-2" />
                 이미지 저장
               </Button>
               <Button
                 onClick={handleShare}
-                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Share2 className="h-5 w-5 mr-2" />
                 카카오톡으로 공유
               </Button>
+              <Button
+                onClick={() => window.location.reload()}
+                className="w-full  mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
+              >
+                🔮 다시 하기
+              </Button>
             </div>
-
-            <Button
-              onClick={() => window.location.reload()}
-              className="w-full mt-4 mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
-            >
-              🔮 다시 하기
-            </Button>
           </>
         )}
       </div>
