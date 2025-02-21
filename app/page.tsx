@@ -51,6 +51,14 @@ export default function CuteMysticalFortuneApp() {
     };
   }, [isLoading]);
 
+  // 카카오 SDK 초기화
+  useEffect(() => {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY);
+      console.log("Kakao init:", window.Kakao.isInitialized());
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -189,39 +197,31 @@ export default function CuteMysticalFortuneApp() {
     if (!fortune) return;
 
     try {
-      // 카카오톡 인앱 브라우저 체크
-      const isKakaoTalk = /KAKAOTALK/i.test(navigator.userAgent);
-
-      if (navigator.share && !isKakaoTalk) {
-        // 이미지 다운로드
-        const response = await fetch(fortune.imageUrl);
-        const blob = await response.blob();
-        const file = new File([blob], "fortune.png", { type: "image/png" });
-
-        try {
-          // 이미지와 함께 공유 시도
-          await navigator.share({
-            title: "나의 사주 운세",
-            text: fortune.imageDescription.slice(0, 100) + "...",
-            url: window.location.href,
-            files: [file],
-          });
-        } catch {
-          // 이미지 공유가 실패하면 텍스트만 공유
-          await navigator.share({
-            title: "나의 사주 운세",
-            text: fortune.imageDescription.slice(0, 100) + "...",
-            url: window.location.href,
-          });
-        }
-      } else {
-        // 클립보드 복사 폴백
-        await navigator.clipboard.writeText(window.location.href);
-        toast({
-          description: "링크가 클립보드에 복사되었습니다!",
-          duration: 2000,
-        });
+      if (!window.Kakao) {
+        throw new Error("Kakao SDK not loaded");
       }
+
+      await window.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: "나의 사주 운세",
+          description: fortune.imageDescription.slice(0, 100) + "...",
+          imageUrl: fortune.imageUrl,
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        },
+        buttons: [
+          {
+            title: "자세히 보기",
+            link: {
+              mobileWebUrl: window.location.href,
+              webUrl: window.location.href,
+            },
+          },
+        ],
+      });
     } catch (error) {
       console.error("공유 실패:", error);
       toast({
@@ -468,7 +468,7 @@ export default function CuteMysticalFortuneApp() {
                 className="flex-1 bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Share2 className="h-5 w-5 mr-2" />
-                공유하기
+                카카오톡으로 공유
               </Button>
             </div>
 
