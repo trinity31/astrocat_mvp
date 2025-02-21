@@ -32,6 +32,21 @@ export default function RootLayout({
           integrity="sha384-6MFdIr0zOira1CHQkedUqJVql0YtcZA1P0nbPrQYJXVJZUkTk/oX4U9GhUIs3/z8"
           crossOrigin="anonymous"
         ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(c,s,q,u,a,r,e){
+                c.hj=c.hj||function(){(c.hj.q=c.hj.q||[]).push(arguments)};
+                c._hjSettings={hjid:a};
+                r=s.getElementsByTagName('head')[0];
+                e=s.createElement('script');
+                e.async=1;
+                e.src=q+c._hjSettings.hjid+u;
+                r.appendChild(e);
+              })(window,document,'https://static.hj.contentsquare.net/c/csq-','.js',5313037);
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
