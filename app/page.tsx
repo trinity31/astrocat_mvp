@@ -112,6 +112,23 @@ export default function CuteMysticalFortuneApp() {
     if (!fortune?.imageUrl) return;
 
     try {
+      // 모바일 환경 체크
+      const isMobileDevice =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
+      if (isMobileDevice) {
+        // 모바일에서는 새 창에서 이미지 열기
+        window.open(fortune.imageUrl, "_blank");
+        toast({
+          description: "이미지를 길게 눌러서 저장할 수 있습니다.",
+          duration: 3000,
+        });
+        return;
+      }
+
+      // PC에서는 기존 방식대로 다운로드
       const fileName = fortune.imageUrl.split("/").pop() || "saju-fortune.png";
 
       const response = await fetch("/api/download-image", {
