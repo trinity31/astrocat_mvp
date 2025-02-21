@@ -120,11 +120,25 @@ export default function CuteMysticalFortuneApp() {
 
       if (isMobileDevice) {
         // 모바일에서는 새 창에서 이미지 열기
-        window.open(fortune.imageUrl, "_blank");
-        toast({
-          description: "이미지를 길게 눌러서 저장할 수 있습니다.",
-          duration: 3000,
-        });
+        const newWindow = window.open("", "_blank");
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  body { margin: 0; padding: 16px; font-family: sans-serif; }
+                  img { max-width: 100%; height: auto; }
+                  p { color: #666; text-align: center; margin-top: 16px; }
+                </style>
+              </head>
+              <body>
+                <img src="${fortune.imageUrl}" alt="운세 이미지" />
+                <p>이미지를 길게 눌러서 저장할 수 있습니다</p>
+              </body>
+            </html>
+          `);
+        }
         return;
       }
 
