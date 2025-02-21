@@ -546,7 +546,7 @@ export default function CuteMysticalFortuneApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-purple-900 text-white p-2 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-purple-900 text-white p-0 sm:p-4">
       <div className="container mx-auto w-full sm:max-w-md">
         <div className="text-center mb-8">
           <div className="relative w-[200px] h-[200px] mx-auto">
@@ -564,7 +564,7 @@ export default function CuteMysticalFortuneApp() {
           </p>
         </div>
 
-        <Card className="bg-white/10 backdrop-blur-md border-none shadow-lg mx-[-8px] sm:mx-0">
+        <Card className="bg-white/10 backdrop-blur-md border-none shadow-lg mx-0 sm:mx-0">
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="pt-4">
@@ -740,7 +740,7 @@ export default function CuteMysticalFortuneApp() {
 
         {fortune && (
           <>
-            <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden mx-[-8px] sm:mx-0">
+            <Card className="mt-8 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden mx-0 sm:mx-0">
               <CardContent className="pt-6">
                 <div className="relative w-full aspect-square mb-4">
                   <Image
@@ -836,7 +836,7 @@ export default function CuteMysticalFortuneApp() {
                               ) : (
                                 <>
                                   <span className="text-xs px-2 py-0.5 bg-pink-500 text-white rounded-full">
-                                    90% 할인
+                                    90%
                                   </span>
                                   <span className="text-sm text-gray-400 line-through">
                                     {reading.originalPrice.toLocaleString()}원
