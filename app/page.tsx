@@ -777,12 +777,12 @@ export default function CuteMysticalFortuneApp() {
                 <Share2 className="h-5 w-5 mr-2" />
                 카카오톡으로 공유
               </Button>
-              <Button
+              {/* <Button
                 onClick={handleReset}
                 className="w-full mb-6 bg-purple-500 hover:bg-purple-600 text-white text-lg py-6"
               >
                 🔮 다시 하기
-              </Button>
+              </Button> */}
             </div>
 
             {/* 추천 사주풀이 리스트 */}
