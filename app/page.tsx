@@ -384,7 +384,7 @@ export default function CuteMysticalFortuneApp() {
 
     // Firebase Analytics 이벤트 추가
     if (analytics) {
-      logEvent(analytics, "추천 사주풀이 클릭", {
+      logEvent(analytics, `추천 사주풀이 ${reading.type} 클릭`, {
         reading_type: reading.type,
         birth_date: `${year}-${month}-${day}`,
         gender: gender,
