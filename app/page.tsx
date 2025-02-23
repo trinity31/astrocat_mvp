@@ -150,6 +150,7 @@ export default function CuteMysticalFortuneApp() {
     const amPm = hour24 < 12 ? "am" : "pm";
 
     const params = {
+      name: name,
       gender: gender.toUpperCase(),
       datetime: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       hour: hour12.toString().padStart(2, "0"),
@@ -360,6 +361,7 @@ export default function CuteMysticalFortuneApp() {
     const amPm = hour24 < 12 ? "am" : "pm";
 
     const params = {
+      name: name,
       gender: gender.toUpperCase(),
       datetime: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       hour: hour12.toString().padStart(2, "0"),
