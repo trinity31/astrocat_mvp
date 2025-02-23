@@ -39,6 +39,12 @@ const recommendedReadings = [
   },
 ];
 
+// 새로운 타입 정의 추가
+type FortuneImage = {
+  imageUrl: string;
+  type: string;
+};
+
 export default function CuteMysticalFortuneApp() {
   const { analytics } = initFirebase();
   const { toast } = useToast();
@@ -185,7 +191,8 @@ export default function CuteMysticalFortuneApp() {
     }
   };
 
-  const handleDownload = async (reading: (typeof recommendedReadings)[0]) => {
+  // 함수 시그니처 변경
+  const handleDownload = async (reading: FortuneImage) => {
     if (!reading.imageUrl) return;
 
     // Firebase Analytics 이벤트 추가
@@ -270,7 +277,7 @@ export default function CuteMysticalFortuneApp() {
     }
   };
 
-  const handleShare = async (reading: (typeof recommendedReadings)[0]) => {
+  const handleShare = async (reading: FortuneImage) => {
     if (!reading.imageUrl) return;
 
     // Firebase Analytics 이벤트 추가
@@ -764,14 +771,24 @@ export default function CuteMysticalFortuneApp() {
             {/* 추가된 다운로드/공유 버튼 */}
             <div className="flex flex-col gap-2 mt-4">
               <Button
-                onClick={() => handleDownload(recommendedReadings[0])}
+                onClick={() =>
+                  handleDownload({
+                    imageUrl: fortune.imageUrl,
+                    type: "fortune",
+                  })
+                }
                 className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Download className="h-5 w-5 mr-2" />
                 이미지 저장
               </Button>
               <Button
-                onClick={() => handleShare(recommendedReadings[0])}
+                onClick={() =>
+                  handleShare({
+                    imageUrl: fortune.imageUrl,
+                    type: "fortune",
+                  })
+                }
                 className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
               >
                 <Share2 className="h-5 w-5 mr-2" />
