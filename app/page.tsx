@@ -980,6 +980,7 @@ export default function CuteMysticalFortuneApp() {
                     // 폼 초기화
                     (e.target as HTMLFormElement).reset();
                   } catch (error) {
+                    console.error("정식출시 알림 신청 에러:", error);
                     toast({
                       variant: "destructive",
                       description:
