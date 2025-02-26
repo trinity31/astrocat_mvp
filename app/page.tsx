@@ -940,6 +940,71 @@ export default function CuteMysticalFortuneApp() {
                 ))}
               </div>
             </div>
+
+            {/* 추천 사주풀이 리스트 아래에 추가 */}
+            <div className="mt-8 p-4 bg-white/10 backdrop-blur-md rounded-lg">
+              <h2 className="text-xl font-bold text-pink-300 mb-2">
+                정식출시 알림 신청
+              </h2>
+              <p className="text-sm text-pink-200 mb-4">
+                더 다양한 사주풀이가 준비되어 있어요! 정식출시 소식을 가장 먼저
+                받아보세요.
+              </p>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const email = (e.target as HTMLFormElement).email.value;
+
+                  if (analytics) {
+                    logEvent(analytics, "정식출시_알림_신청", {
+                      email: email,
+                    });
+                  }
+
+                  try {
+                    const response = await fetch("/api/subscribe", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ email }),
+                    });
+
+                    if (!response.ok) throw new Error();
+
+                    toast({
+                      description: "알림 신청이 완료되었습니다!",
+                      duration: 2000,
+                    });
+
+                    // 폼 초기화
+                    (e.target as HTMLFormElement).reset();
+                  } catch (error) {
+                    toast({
+                      variant: "destructive",
+                      description:
+                        "알림 신청에 실패했습니다. 다시 시도해주세요.",
+                      duration: 2000,
+                    });
+                  }
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="이메일 주소를 입력해주세요"
+                  required
+                  className="flex-1 px-3 py-2 bg-white/10 border border-pink-300/30 rounded-lg text-white placeholder:text-pink-200/50 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+                <Button
+                  type="submit"
+                  className="bg-pink-500 hover:bg-pink-600 text-white"
+                >
+                  신청하기
+                </Button>
+              </form>
+            </div>
           </>
         )}
       </div>
