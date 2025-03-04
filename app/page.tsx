@@ -144,20 +144,26 @@ export default function CuteMysticalFortuneApp() {
 
     setIsLoading(true);
 
-    // 시간이 12시간제로 변환되어야 하므로, am/pm 결정
-    const hour24 = parseInt(birthTime.split(":")[0]);
-    const hour12 = hour24 % 12 || 12;
-    const amPm = hour24 < 12 ? "am" : "pm";
-
-    const params = {
+    // 시간 정보가 있는 경우에만 시간 관련 파라미터 추가
+    let params: any = {
       name: name,
       gender: gender.toUpperCase(),
       datetime: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
-      hour: hour12.toString().padStart(2, "0"),
-      minute: birthTime.split(":")[1] || "00",
-      am_pm: amPm,
       reading_type: "five_elements_divine",
     };
+
+    if (birthTime) {
+      const hour24 = parseInt(birthTime.split(":")[0]);
+      const hour12 = hour24 % 12 || 12;
+      const amPm = hour24 < 12 ? "am" : "pm";
+
+      params = {
+        ...params,
+        hour: hour12.toString().padStart(2, "0"),
+        minute: birthTime.split(":")[1] || "00",
+        am_pm: amPm,
+      };
+    }
 
     console.log("서버로 전송되는 파라미터:", params);
 
@@ -356,19 +362,25 @@ export default function CuteMysticalFortuneApp() {
   ];
 
   const getFortune = async (readingType: string) => {
-    const hour24 = parseInt(birthTime.split(":")[0]);
-    const hour12 = hour24 % 12 || 12;
-    const amPm = hour24 < 12 ? "am" : "pm";
-
-    const params = {
+    let params: any = {
       name: name,
       gender: gender.toUpperCase(),
       datetime: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
-      hour: hour12.toString().padStart(2, "0"),
-      minute: birthTime.split(":")[1] || "00",
-      am_pm: amPm,
       reading_type: readingType,
     };
+
+    if (birthTime) {
+      const hour24 = parseInt(birthTime.split(":")[0]);
+      const hour12 = hour24 % 12 || 12;
+      const amPm = hour24 < 12 ? "am" : "pm";
+
+      params = {
+        ...params,
+        hour: hour12.toString().padStart(2, "0"),
+        minute: birthTime.split(":")[1] || "00",
+        am_pm: amPm,
+      };
+    }
 
     const response = await fetch("/api/saju", {
       method: "POST",
@@ -641,8 +653,10 @@ export default function CuteMysticalFortuneApp() {
               <div>
                 <Label className="text-pink-300 text-lg">
                   {/* <ClockIcon className="inline-block mr-2" /> */}
-                  태어난 시간<span className="text-pink-500 ml-1">*</span>
+                  태어난 시간{" "}
+                  <span className="text-xs">(모르면 비워두세요)</span>
                 </Label>
+
                 <div className="flex gap-2 mt-2">
                   <select
                     value={birthTime.split(":")[0] || ""}
@@ -651,7 +665,6 @@ export default function CuteMysticalFortuneApp() {
                       const minute = birthTime.split(":")[1] || "00";
                       setBirthTime(`${hour}:${minute}`);
                     }}
-                    required
                     className="flex-1 bg-white/20 border-pink-300 text-pink-200 rounded-md h-10 px-3"
                   >
                     <option value="">시</option>
@@ -668,7 +681,6 @@ export default function CuteMysticalFortuneApp() {
                       const minute = e.target.value;
                       setBirthTime(`${hour}:${minute}`);
                     }}
-                    required
                     className="flex-1 bg-white/20 border-pink-300 text-pink-200 rounded-md h-10 px-3"
                   >
                     <option value="">분</option>
