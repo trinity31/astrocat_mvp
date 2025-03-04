@@ -110,6 +110,7 @@ export default function CuteMysticalFortuneApp() {
   const translations = {
     ko: {
       welcome: "안녕! 나는 사주 보는 우주고양이야! 언어를 선택해 달라냥.",
+      name: "이름",
       languageSelect: "언어 선택",
       startButton: "시작하기 ✨",
       mainWelcome:
@@ -124,7 +125,7 @@ export default function CuteMysticalFortuneApp() {
       hour: "시",
       minute: "분",
       birthTime: "태어난 시간",
-      birthTimeNote: "(모르면 비워두세요)",
+      birthTimeNote: "모르면 비워두세요",
       gender: "성별",
       male: "남성",
       female: "여성",
@@ -160,9 +161,11 @@ export default function CuteMysticalFortuneApp() {
         kakaoTitle: "님의 사주 이미지",
         kakaoButton: "내 사주 이미지 보기",
       },
+      birthday: "생년월일",
     },
     en: {
       welcome: "Hi! I'm the Fortune-telling Space Cat! Choose your language~",
+      name: "Name",
       languageSelect: "Language",
       startButton: "Let's Start ✨",
       mainWelcome:
@@ -177,7 +180,7 @@ export default function CuteMysticalFortuneApp() {
       hour: "Hour",
       minute: "Minute",
       birthTime: "Birth Time",
-      birthTimeNote: "(Leave empty if unknown)",
+      birthTimeNote: "Leave empty if unknown",
       gender: "Gender",
       male: "Male",
       female: "Female",
@@ -212,6 +215,7 @@ export default function CuteMysticalFortuneApp() {
         kakaoTitle: "'s Fortune Image",
         kakaoButton: "View My Fortune Image",
       },
+      birthday: "Date of Birth",
     },
   };
 
@@ -521,11 +525,17 @@ export default function CuteMysticalFortuneApp() {
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   // 시간 옵션 생성 (00시 ~ 23시)
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  // 분 옵션 생성 (30분 단위)
-  const minuteOptions = [
-    { value: "00", label: "0~29분" },
-    { value: "30", label: "30~59분" },
-  ];
+  // minuteOptions 객체를 언어별로 정의
+  const minuteOptions = {
+    ko: [
+      { value: "00", label: "0~29분" },
+      { value: "30", label: "30~59분" },
+    ],
+    en: [
+      { value: "00", label: "0-29 min" },
+      { value: "30", label: "30-59 min" },
+    ],
+  };
 
   const getFortune = async (readingType: string) => {
     let params: SajuRequestParams = {
@@ -821,7 +831,7 @@ export default function CuteMysticalFortuneApp() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="pt-4">
                     <Label className="text-pink-300 text-lg">
-                      {t.viewFortune}
+                      {t.name}
                       <span className="text-pink-500 ml-1">*</span>
                     </Label>
                     <input
@@ -829,26 +839,28 @@ export default function CuteMysticalFortuneApp() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full mt-2 px-3 py-2 bg-white/10 border border-pink-300/30 rounded-lg text-white placeholder:text-pink-200/50 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder={t.viewFortune}
+                      placeholder={t.name}
                       required
                     />
                   </div>
                   <div>
                     <Label className="text-pink-300 text-lg">
-                      {t.year}
+                      {t.birthday}
                       <span className="text-pink-500 ml-1">*</span>
                     </Label>
                     <div className="flex gap-2 mt-2">
                       <select
-                        value={year ?? 1995} // 처음 접속 시, year가 없으면 1995를 기본값으로
+                        value={year}
                         onChange={(e) => setYear(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-pink-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                         required
-                        className="flex-1 bg-white/20 border-pink-300 text-pink-200 rounded-md h-10 px-3"
                       >
-                        <option value="">{t.year}</option>
+                        <option value="">
+                          {language === "ko" ? "년도" : "Year"}
+                        </option>
                         {years.map((y) => (
                           <option key={y} value={y}>
-                            {y}년
+                            {language === "ko" ? `${y}년` : y}
                           </option>
                         ))}
                       </select>
@@ -856,26 +868,35 @@ export default function CuteMysticalFortuneApp() {
                       <select
                         value={month}
                         onChange={(e) => setMonth(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-pink-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                         required
-                        className="flex-1 bg-white/20 border-pink-300 text-pink-200 rounded-md h-10 px-3"
                       >
-                        <option value="">{t.month}</option>
+                        <option value="">
+                          {language === "ko" ? "월" : "Month"}
+                        </option>
                         {months.map((m) => (
-                          <option key={m} value={m.toString().padStart(2, "0")}>
-                            {m}월
+                          <option key={m} value={m}>
+                            {language === "ko"
+                              ? `${m}월`
+                              : new Date(
+                                  2000,
+                                  parseInt(m.toString()) - 1
+                                ).toLocaleString("en-US", { month: "long" })}
                           </option>
                         ))}
                       </select>
                       <select
                         value={day}
                         onChange={(e) => setDay(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-pink-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                         required
-                        className="flex-1 bg-white/20 border-pink-300 text-pink-200 rounded-md h-10 px-3"
                       >
-                        <option value="">{t.day}</option>
+                        <option value="">
+                          {language === "ko" ? "일" : "Day"}
+                        </option>
                         {days.map((d) => (
-                          <option key={d} value={d.toString().padStart(2, "0")}>
-                            {d}일
+                          <option key={d} value={d}>
+                            {language === "ko" ? `${d}일` : d}
                           </option>
                         ))}
                       </select>
@@ -885,7 +906,7 @@ export default function CuteMysticalFortuneApp() {
                   <div>
                     <Label className="text-pink-300 text-lg">
                       {t.birthTime}
-                      <span className="text-xs">({t.birthTimeNote})</span>
+                      <span className="text-xs"> ( {t.birthTimeNote} )</span>
                     </Label>
 
                     <div className="flex gap-2 mt-2">
@@ -901,7 +922,9 @@ export default function CuteMysticalFortuneApp() {
                         <option value="">{t.hour}</option>
                         {hours.map((h) => (
                           <option key={h} value={h.toString().padStart(2, "0")}>
-                            {h.toString().padStart(2, "0")}시
+                            {language === "ko"
+                              ? `${h.toString().padStart(2, "0")}시`
+                              : `${h.toString().padStart(2, "0")}:00`}
                           </option>
                         ))}
                       </select>
@@ -915,7 +938,7 @@ export default function CuteMysticalFortuneApp() {
                         className="flex-1 bg-white/20 border-pink-300 text-pink-200 rounded-md h-10 px-3"
                       >
                         <option value="">{t.minute}</option>
-                        {minuteOptions.map(({ value, label }) => (
+                        {minuteOptions[language].map(({ value, label }) => (
                           <option key={value} value={value}>
                             {label}
                           </option>
