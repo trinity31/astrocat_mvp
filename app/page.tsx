@@ -13,55 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { initFirebase } from "@/lib/firebase";
 import { logEvent } from "firebase/analytics";
 import { Toaster } from "@/components/ui/toaster";
-
-// Mock 데이터 수정
-const recommendedReadingsKr = [
-  {
-    id: 1,
-    title: "내 사주를 닮은 자연",
-    description:
-      "당신의 사주를 아름다운 자연의 모습으로 표현한 이미지를 생성합니다.",
-    imageUrl: "/images/nature-fortune.png",
-    type: "nature",
-    originalPrice: 9000,
-    price: 0,
-    isPromotion: true,
-  },
-  {
-    id: 2,
-    title: "나 사주에 맞는 여행지는?",
-    description: "행운을 가져다 주는 여행지 이미지를 만들어 드립니다.",
-    imageUrl: "/images/travel-fortune.png",
-    type: "travel",
-    originalPrice: 9000,
-    price: 900,
-    isPromotion: false,
-  },
-];
-
-const recommendedReadingsEn = [
-  {
-    id: 1,
-    title: "My Fortune in Nature",
-    description: "Generate an image of your fortune in the form of nature.",
-    imageUrl: "/images/nature-fortune.png",
-    type: "nature",
-    originalPrice: 10,
-    price: 0,
-    isPromotion: true,
-  },
-  {
-    id: 2,
-    title: "My Fortune in Travel",
-    description:
-      "Create an image of a travel destination that brings you good luck",
-    imageUrl: "/images/travel-fortune.png",
-    type: "travel",
-    originalPrice: 10,
-    price: 1,
-    isPromotion: false,
-  },
-];
+import { translations, Language } from "./translations";
+import { recommendedReadings, type Reading } from "./data/recommendedReadings";
 
 // 새로운 타입 정의 추가
 type FortuneImage = {
@@ -103,121 +56,8 @@ export default function CuteMysticalFortuneApp() {
     imageDescription: string;
   } | null>(null);
   const [isNatureLoading, setIsNatureLoading] = useState(false);
-  const [language, setLanguage] = useState<"ko" | "en">("ko");
+  const [language, setLanguage] = useState<Language>("ko");
   const [isInitialSetupComplete, setIsInitialSetupComplete] = useState(false);
-
-  // 다국어 텍스트 객체 추가
-  const translations = {
-    ko: {
-      welcome: "안녕! 나는 사주 보는 우주고양이야! 언어를 선택해 달라냥.",
-      name: "이름",
-      languageSelect: "언어 선택",
-      startButton: "시작하기 ✨",
-      mainWelcome:
-        "안녕! 나는 사주보는 우주고양이! 너의 사주팔자 모습을 그림으로 그려줄게. 생년월일과 태어난 시간을 양력으로 입력해 달라냥~",
-      loading: "잠시만 기다려 달라냥~ 🐱",
-      viewFortune: "🔮 내 사주 이미지 보기",
-      saveImage: "이미지 저장",
-      shareKakao: "카카오톡으로 공유",
-      year: "년도",
-      month: "월",
-      day: "일",
-      hour: "시",
-      minute: "분",
-      birthTime: "태어난 시간",
-      birthTimeNote: "모르면 비워두세요",
-      gender: "성별",
-      male: "남성",
-      female: "여성",
-      koreanText: "한국어",
-      englishText: "English",
-      otherReadings: "다른 사주풀이 보기",
-      freeExperience: "무료 체험",
-      discount: "90%",
-      won: "원",
-      comingSoon: "준비 중인 기능입니다 😺",
-      notificationTitle: "정식출시 알림 신청",
-      notificationDesc:
-        "더 다양한 사주풀이가 준비되어 있어요! 정식출시 소식을 가장 먼저 받아보세요.",
-      emailPlaceholder: "이메일 주소를 입력해주세요",
-      subscribe: "신청하기",
-      subscribeSuccess: "알림 신청이 완료되었습니다!",
-      subscribeError: "알림 신청에 실패했습니다. 다시 시도해주세요.",
-      currency: {
-        symbol: "원",
-        position: "after",
-      },
-      errors: {
-        nameRequired: "이름을 입력해주세요.",
-        genderRequired: "성별을 선택해주세요.",
-        apiCallFailed: "운세를 불러오는데 실패했습니다.",
-        tryAgainLater: "죄송합니다. 잠시 후 다시 시도해주세요.",
-      },
-      toast: {
-        imageDownloaded: "이미지가 다운로드되었습니다.",
-        downloadFailed:
-          "이미지 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        shareFailed: "공유하기에 실패했습니다.",
-        kakaoTitle: "님의 사주 이미지",
-        kakaoButton: "내 사주 이미지 보기",
-      },
-      birthday: "생년월일",
-    },
-    en: {
-      welcome: "Hi! I'm the Fortune-telling Space Cat! Choose your language~",
-      name: "Name",
-      languageSelect: "Language",
-      startButton: "Let's Start ✨",
-      mainWelcome:
-        "Hi! I'm the Fortune-telling Space Cat! I'll draw your fortune in pictures. Please enter your birth date and time in solar calendar~",
-      loading: "Please wait a moment~ 🐱",
-      viewFortune: "🔮 View My Fortune Image",
-      saveImage: "Save Image",
-      shareKakao: "Share via KakaoTalk",
-      year: "Year",
-      month: "Month",
-      day: "Day",
-      hour: "Hour",
-      minute: "Minute",
-      birthTime: "Birth Time",
-      birthTimeNote: "Leave empty if unknown",
-      gender: "Gender",
-      male: "Male",
-      female: "Female",
-      koreanText: "한국어",
-      englishText: "English",
-      otherReadings: "View Other Fortune Readings",
-      freeExperience: "Free Trial",
-      discount: "90% OFF",
-      won: "USD",
-      comingSoon: "Coming Soon 😺",
-      notificationTitle: "Get Launch Notification",
-      notificationDesc:
-        "More fortune readings are coming! Be the first to know when we officially launch.",
-      emailPlaceholder: "Enter your email address",
-      subscribe: "Subscribe",
-      subscribeSuccess: "Successfully subscribed!",
-      subscribeError: "Failed to subscribe. Please try again.",
-      currency: {
-        symbol: "$",
-        position: "before",
-      },
-      errors: {
-        nameRequired: "Please enter your name.",
-        genderRequired: "Please select your gender.",
-        apiCallFailed: "Failed to load your fortune.",
-        tryAgainLater: "Sorry, please try again later.",
-      },
-      toast: {
-        imageDownloaded: "Image has been downloaded.",
-        downloadFailed: "Failed to download image. Please try again later.",
-        shareFailed: "Failed to share.",
-        kakaoTitle: "'s Fortune Image",
-        kakaoButton: "View My Fortune Image",
-      },
-      birthday: "Date of Birth",
-    },
-  };
 
   // 현재 언어에 따른 텍스트 가져오기
   const t = translations[language];
@@ -573,7 +413,7 @@ export default function CuteMysticalFortuneApp() {
 
   // 추천 카드 클릭 핸들러 수정
   const handleRecommendedClick = async (
-    reading: (typeof recommendedReadingsKr | typeof recommendedReadingsEn)[0]
+    reading: (typeof recommendedReadings)[Language][0]
   ) => {
     if (!fortune) return;
 
@@ -1075,10 +915,7 @@ export default function CuteMysticalFortuneApp() {
                     {t.otherReadings}
                   </h2>
                   <div className="space-y-2">
-                    {(language === "ko"
-                      ? recommendedReadingsKr
-                      : recommendedReadingsEn
-                    ).map((reading) => (
+                    {recommendedReadings[language].map((reading) => (
                       <div key={reading.id}>
                         <Card
                           className={`bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden ${
