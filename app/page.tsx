@@ -14,7 +14,7 @@ import { initFirebase } from "@/lib/firebase";
 import { logEvent } from "firebase/analytics";
 import { Toaster } from "@/components/ui/toaster";
 import { translations, Language } from "./translations";
-import { recommendedReadings, type Reading } from "./data/recommendedReadings";
+import { recommendedReadings } from "./data/recommendedReadings";
 
 // 새로운 타입 정의 추가
 type FortuneImage = {
