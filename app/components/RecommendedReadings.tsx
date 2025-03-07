@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, Share2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Language, translations } from "../translations";
-import { recommendedReadings } from "../data/recommendedReadings";
+import { ReadingType, recommendedReadings } from "../data/recommendedReadings";
 import { useToast } from "@/hooks/use-toast";
 import { logEvent } from "firebase/analytics";
 import {
@@ -43,13 +43,15 @@ export default function RecommendedReadings({
   const { toast } = useToast();
   const t = translations[language];
   const [natureReading, setNatureReading] = useState<FortuneResult>(null);
+  const [animalReading, setAnimalReading] = useState<FortuneResult>(null);
   const [isNatureLoading, setIsNatureLoading] = useState(false);
+  const [isAnimalLoading, setIsAnimalLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
-    if (isNatureLoading) {
+    if (isNatureLoading || isAnimalLoading) {
       setProgress(0);
       intervalId = setInterval(() => {
         setProgress((prev) => {
@@ -69,7 +71,7 @@ export default function RecommendedReadings({
         clearInterval(intervalId);
       }
     };
-  }, [isNatureLoading]);
+  }, [isNatureLoading, isAnimalLoading]);
 
   // 추천 카드 클릭 핸들러
   const handleRecommendedClick = async (
@@ -78,7 +80,16 @@ export default function RecommendedReadings({
     if (!fortune) return;
 
     // 이미 로딩 중이거나 결과가 있으면 리턴
-    if (reading.type === "nature" && (isNatureLoading || natureReading)) return;
+    if (
+      reading.type === ReadingType.NATURE &&
+      (isNatureLoading || natureReading)
+    )
+      return;
+    if (
+      reading.type === ReadingType.ANIMAL &&
+      (isAnimalLoading || animalReading)
+    )
+      return;
 
     // Firebase Analytics 이벤트 추가
     if (analytics) {
@@ -92,7 +103,7 @@ export default function RecommendedReadings({
     }
 
     try {
-      if (reading.type === "nature") {
+      if (reading.type === ReadingType.NATURE) {
         setIsNatureLoading(true);
 
         const params = createSajuParams(
@@ -122,7 +133,37 @@ export default function RecommendedReadings({
           imageUrl: result.image_url || "/placeholder.svg",
           imageDescription: result.image_description || "",
         });
-      } else if (reading.type === "travel") {
+      } else if (reading.type === ReadingType.ANIMAL) {
+        setIsAnimalLoading(true);
+
+        const params = createSajuParams(
+          userData.name,
+          userData.gender,
+          userData.year,
+          userData.month,
+          userData.day,
+          userData.birthTime,
+          "day_pillar",
+          language
+        );
+
+        const response = await fetch("/api/saju", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(params),
+        });
+
+        if (!response.ok) throw new Error("API 호출 실패");
+        const result = await response.json();
+
+        setAnimalReading({
+          fortuneText: result.reading || t.errors.apiCallFailed,
+          imageUrl: result.image_url || "/placeholder.svg",
+          imageDescription: result.image_description || "",
+        });
+      } else if (reading.type === ReadingType.TRAVEL) {
         toast({
           description: t.comingSoon,
           duration: 2000,
@@ -137,6 +178,7 @@ export default function RecommendedReadings({
       });
     } finally {
       setIsNatureLoading(false);
+      setIsAnimalLoading(false);
     }
   };
 
@@ -147,7 +189,32 @@ export default function RecommendedReadings({
       natureReading.imageUrl,
       analytics,
       userData,
-      "nature",
+      ReadingType.NATURE,
+      t as unknown as TranslationObject
+    );
+
+    if (success) {
+      toast({
+        description: t.toast.imageDownloaded,
+        duration: 2000,
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        description: t.toast.downloadFailed,
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAnimalDownload = async () => {
+    if (!animalReading?.imageUrl) return;
+
+    const success = await downloadImage(
+      animalReading.imageUrl,
+      analytics,
+      userData,
+      ReadingType.ANIMAL,
       t as unknown as TranslationObject
     );
 
@@ -174,7 +241,29 @@ export default function RecommendedReadings({
       natureReading.imageDescription,
       analytics,
       userData,
-      "nature",
+      ReadingType.NATURE,
+      t as unknown as TranslationObject
+    );
+
+    if (!success) {
+      toast({
+        variant: "destructive",
+        description: t.toast.shareFailed,
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleAnimalShare = async () => {
+    if (!animalReading?.imageUrl) return;
+
+    const success = await shareToKakao(
+      animalReading.imageUrl,
+      userData.name,
+      animalReading.imageDescription,
+      analytics,
+      userData,
+      ReadingType.ANIMAL,
       t as unknown as TranslationObject
     );
 
@@ -195,7 +284,10 @@ export default function RecommendedReadings({
           <div key={reading.id}>
             <Card
               className={`bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden ${
-                reading.type === "nature" && (isNatureLoading || natureReading)
+                (reading.type === ReadingType.NATURE &&
+                  (isNatureLoading || natureReading)) ||
+                (reading.type === ReadingType.ANIMAL &&
+                  (isAnimalLoading || animalReading))
                   ? "opacity-50 cursor-not-allowed"
                   : "cursor-pointer hover:bg-white/20"
               } transition-all`}
@@ -246,7 +338,20 @@ export default function RecommendedReadings({
                     </div>
                   </div>
                 </div>
-                {reading.type === "nature" && isNatureLoading && (
+                {reading.type === ReadingType.NATURE && isNatureLoading && (
+                  <div className="mt-4">
+                    <p className="mb-4 text-lg font-medium text-pink-200 text-center">
+                      {t.loading}
+                    </p>
+                    <div className="w-full bg-white/20 rounded-full h-4">
+                      <div
+                        className="bg-pink-500 h-4 rounded-full transition-all duration-1000"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {reading.type === ReadingType.ANIMAL && isAnimalLoading && (
                   <div className="mt-4">
                     <p className="mb-4 text-lg font-medium text-pink-200 text-center">
                       {t.loading}
@@ -263,7 +368,7 @@ export default function RecommendedReadings({
             </Card>
 
             {/* 자연 이미지 결과 표시 */}
-            {reading.type === "nature" && natureReading && (
+            {reading.type === ReadingType.NATURE && natureReading && (
               <>
                 <Card className="mt-4 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden">
                   <CardContent className="pt-6">
@@ -301,6 +406,55 @@ export default function RecommendedReadings({
                   {language === "ko" && (
                     <Button
                       onClick={handleNatureShare}
+                      className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                    >
+                      <Share2 className="h-5 w-5 mr-2" />
+                      {t.shareKakao}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* 동물 이미지 결과 표시 */}
+            {reading.type === ReadingType.ANIMAL && animalReading && (
+              <>
+                <Card className="mt-4 bg-white/10 backdrop-blur-md border-none shadow-lg overflow-hidden">
+                  <CardContent className="pt-6">
+                    <div className="relative w-full aspect-square mb-4">
+                      <Image
+                        src={animalReading.imageUrl}
+                        alt="동물 이미지"
+                        fill
+                        className="rounded-lg border-4 border-pink-300 object-cover"
+                      />
+                    </div>
+                    <div className="prose prose-invert prose-pink max-w-none [&>*]:m-0 [&>*]:pl-0 space-y-6">
+                      {animalReading.imageDescription && (
+                        <p className="text-pink-200">
+                          {animalReading.imageDescription}
+                        </p>
+                      )}
+                      <div className="pt-4 border-t border-pink-300/30">
+                        <ReactMarkdown>
+                          {animalReading.fortuneText}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex flex-col gap-2 mt-4">
+                  <Button
+                    onClick={handleAnimalDownload}
+                    className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    {t.saveImage}
+                  </Button>
+                  {language === "ko" && (
+                    <Button
+                      onClick={handleAnimalShare}
                       className="w-full bg-pink-500 hover:bg-pink-600 text-white text-lg py-6"
                     >
                       <Share2 className="h-5 w-5 mr-2" />
