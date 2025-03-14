@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 
 const BASE_URL = process.env.NODE_ENV === 'development' 
   ? 'http://127.0.0.1:8000'
-  : 'https://saju.trinity-lab.co.kr'
+  : 'https://saju.trinity-app.com'
 
-// const BASE_URL = 'https://saju.trinity-lab.co.kr'
+// const BASE_URL = 'https://saju.trinity-app.com'
 
 export const runtime = 'edge' // Edge Runtime 사용
 
