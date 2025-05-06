@@ -1,56 +1,50 @@
-import { NextResponse } from 'next/server'
+// Removed unused imports
 
-const BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://127.0.0.1:8000'
-  : 'https://saju.trinity-app.com'
+const BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://127.0.0.1:8000"
+    : "https://saju.trinity-app.com";
 
-// const BASE_URL = 'https://saju.trinity-app.com'
-
-export const runtime = 'edge' // Edge Runtime 사용
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60초 타임아웃
-
-    const response = await fetch(`${BASE_URL}/saju-reading`, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      throw new Error('API 호출 실패')
-    }
-
-    const data = await response.json()
-    return NextResponse.json(data)
-  } catch (error: unknown) {
-    console.error('API 호출 에러:', error)
-    
-    if (error instanceof Error && error.name === 'AbortError') {
-      return NextResponse.json(
-        {
-          reading: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
-          image_url: "/placeholder.svg"
-        },
-        { status: 504 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        reading: "죄송합니다. 잠시 후 다시 시도해주세요.",
-        image_url: "/placeholder.svg"
-      },
-      { status: 500 }
-    )
+// Note: no default export or deprecated config; using App Router POST handler with Web API formData
+export async function POST(req: Request) {
+  // only allow POST
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405 }
+    );
   }
-} 
+
+  // parse incoming multipart/form-data
+  const form = await req.formData();
+
+  // reconstruct FormData for backend
+  const forward = new FormData();
+  // iterate over form entries without for-of (avoid downlevelIteration error)
+  Array.from(form.entries()).forEach(([key, value]) => {
+    if (value instanceof File) {
+      forward.append(key, value, value.name);
+    } else {
+      forward.append(key, value as string);
+    }
+  });
+
+  // call AI backend
+  const response = await fetch(`${BASE_URL}/saju-reading`, {
+    method: "POST",
+    body: forward,
+  });
+
+  if (!response.ok) {
+    return new Response(
+      JSON.stringify({ error: "API 호출 실패" }),
+      { status: 500 }
+    );
+  }
+
+  const data = await response.json();
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}

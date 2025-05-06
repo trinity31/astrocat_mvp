@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +46,7 @@ export default function FortuneForm({
 }: FortuneFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const t = translations[language];
 
   // 현재 연도 계산
@@ -73,6 +74,14 @@ export default function FortuneForm({
     ],
   };
 
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    } else {
+      setSelectedImage(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -86,7 +95,6 @@ export default function FortuneForm({
       return;
     }
 
-    // Firebase Analytics 이벤트 추가
     if (analytics) {
       logEvent(analytics, "사주 보기", {
         birth_date: `${year}-${month}-${day}`,
@@ -107,6 +115,7 @@ export default function FortuneForm({
       });
     }, 1000);
 
+    // Prepare form data
     const params = createSajuParams(
       name,
       gender,
@@ -117,14 +126,18 @@ export default function FortuneForm({
       "five_elements_divine",
       language
     );
+    const formData = new FormData();
+    Object.entries(params).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    if (selectedImage) {
+      formData.append("image", selectedImage);
+    }
 
     try {
       const response = await fetch("/api/saju", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -303,6 +316,21 @@ export default function FortuneForm({
             </div>
           </div>
 
+          <div>
+            <Label className="text-pink-300 text-lg">이미지 업로드 (선택)</Label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-pink-200 mt-2"
+            />
+            {selectedImage && (
+              <div className="mt-2 text-pink-400 text-sm">
+                선택된 파일: {selectedImage.name}
+              </div>
+            )}
+          </div>
+
           {!isLoading ? (
             <Button
               type="submit"
@@ -327,4 +355,4 @@ export default function FortuneForm({
       </CardContent>
     </Card>
   );
-} 
+}
