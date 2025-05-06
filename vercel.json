@@ -1,0 +1,8 @@
+
+{
+  "functions": {
+    "app/api/saju/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
