@@ -5,7 +5,8 @@ export const runtime = "nodejs"
 const BASE_URL =
   process.env.NODE_ENV === "development"
     ? "http://127.0.0.1:8000"
-    : "https://saju.trinity-app.com";
+    : "https://saju.trinity-apps.net";
+
 
 // Note: no default export or deprecated config; using App Router POST handler with Web API formData
 export async function POST(req: Request) {
